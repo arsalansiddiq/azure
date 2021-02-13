@@ -31,6 +31,7 @@ public class Constants {
     public static final String INSTANCE_ASSOCATION = "instanceAssociationSet";
 
     /* Notification Constant */
+    public static final String DISCOVERY_START_DESCRIPTION = "Discovery Cycle Started";
     public static final String DISCOVERY_END_DESCRIPTION = "Discovery Cycle Completed";
 
     /* Azure Constants */

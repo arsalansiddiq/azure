@@ -7,23 +7,12 @@ import java.util.Map;
 
 public class NetworkSecurityGroupDto extends AzureDeviceCommon {
 
-    String location;
     Boolean isAssociatedWithSubnet;
     Boolean isAssociatedWithNI;
     Integer nsgAssociatedSubnetsCount;
     Integer nsgAssociatedNetworkInterfacesCount;
-    List<Map> tags;
     List<AssociatedAsset> associatedAssets;
     List<FirewallRule> firewallRules;
-    //    List<AzureRoleAssignments> azureRoleAssignments;
-
-    public String getLocation() {
-        return location;
-    }
-
-    public void setLocation(String location) {
-        this.location = location;
-    }
 
     public Boolean getAssociatedWithSubnet() {
         return isAssociatedWithSubnet;
@@ -55,14 +44,6 @@ public class NetworkSecurityGroupDto extends AzureDeviceCommon {
 
     public void setNsgAssociatedNetworkInterfacesCount(Integer nsgAssociatedNetworkInterfacesCount) {
         this.nsgAssociatedNetworkInterfacesCount = nsgAssociatedNetworkInterfacesCount;
-    }
-
-    public List<Map> getTags() {
-        return tags;
-    }
-
-    public void setTags(List<Map> tags) {
-        this.tags = tags;
     }
 
     public List<AssociatedAsset> getAssociatedAssets() {

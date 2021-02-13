@@ -1,5 +1,7 @@
 package com.inventa.azure.common;
 
+import org.joda.time.DateTime;
+
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
@@ -20,6 +22,10 @@ public class AzureUtils {
         map.put(Constants.ACCOUNT_TAG, tag);
 
         return Collections.singletonList(map);
+    }
+
+    public static String toStringDateTime (DateTime dateTime) {
+        return dateTime.toLocalDateTime().toString("yyyy-MM-dd hh:mm:ss a");
     }
 
 }

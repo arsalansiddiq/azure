@@ -1,5 +1,8 @@
 package com.inventa.azure.dto.common;
 
+import java.util.List;
+import java.util.Map;
+
 public class AzureDeviceCommon extends DeviceDto {
 
     private String identifier;
@@ -7,6 +10,8 @@ public class AzureDeviceCommon extends DeviceDto {
     private String subscriptionName;
     private String resourceGroupName;
     private String assetName;
+    String location;
+    List<Map> tags;
 
     public String getIdentifier() {
         return identifier;
@@ -46,5 +51,21 @@ public class AzureDeviceCommon extends DeviceDto {
 
     public void setAssetName(String assetName) {
         this.assetName = assetName;
+    }
+
+    public String getLocation() {
+        return location;
+    }
+
+    public void setLocation(String location) {
+        this.location = location;
+    }
+
+    public List<Map> getTags() {
+        return tags;
+    }
+
+    public void setTags(List<Map> tags) {
+        this.tags = tags;
     }
 }

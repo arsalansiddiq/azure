@@ -12,8 +12,7 @@ import org.springframework.stereotype.Service;
 
 import java.util.List;
 
-import static com.inventa.azure.common.Constants.AZURE_ADAPTER;
-import static com.inventa.azure.common.Constants.DISCOVERY_END_DESCRIPTION;
+import static com.inventa.azure.common.Constants.*;
 
 @Service
 public class DiscoveryServiceImpl implements DiscoveryService {
@@ -34,11 +33,16 @@ public class DiscoveryServiceImpl implements DiscoveryService {
     public void triggerDiscovery(List<InstanceConfigurationDto> instances) {
 
         if (instances != null && !instances.isEmpty()) {
+            notificationProxy.pushInfo(
+                    new NotificationDto(AZURE_ADAPTER, DISCOVERY_START_DESCRIPTION));
+
             for (InstanceConfigurationDto instance : instances) {
+
                 if (instance != null && instance.getProperties() != null) {
-                    deviceService.add(networkSecurityGroupService.getNetworkSecurityGroups(instance.get_id(), instance.getProperties()), networkSecurityGroupConverter);
+                    networkSecurityGroupService.discoverNetworkSecurityGroups(instance.get_id(), instance.getProperties());
                 }
             }
+
             notificationProxy.pushInfo(
                     new NotificationDto(AZURE_ADAPTER, DISCOVERY_END_DESCRIPTION)
             );

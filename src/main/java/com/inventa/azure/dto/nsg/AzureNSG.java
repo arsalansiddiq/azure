@@ -1,9 +1,11 @@
 package com.inventa.azure.dto.nsg;
 
-import com.azure.resourcemanager.network.fluent.models.NetworkSecurityGroupInner;
-import com.azure.resourcemanager.network.fluent.models.SubnetInner;
+//import com.azure.resourcemanager.network.fluent.models.NetworkSecurityGroupInner;
+//import com.azure.resourcemanager.network.fluent.models.SubnetInner;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.inventa.azure.dto.common.AzureTagsTab;
+import com.microsoft.azure.management.network.implementation.NetworkSecurityGroupInner;
+import com.microsoft.azure.management.network.implementation.SubnetInner;
 
 import java.util.List;
 

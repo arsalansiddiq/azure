@@ -1,20 +1,22 @@
 package com.inventa.azure.service.impl;
 
-import com.azure.core.http.rest.PagedIterable;
-import com.azure.resourcemanager.AzureResourceManager;
-import com.azure.resourcemanager.network.fluent.models.SecurityRuleInner;
-import com.azure.resourcemanager.network.models.NetworkSecurityGroup;
-import com.azure.resourcemanager.network.models.Subnet;
-import com.azure.resourcemanager.resources.models.Subscription;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.inventa.azure.common.AzureClient;
 import com.inventa.azure.common.AzureUtils;
+import com.inventa.azure.converter.NetworkSecurityGroupConverter;
 import com.inventa.azure.dto.AzureProperties;
 import com.inventa.azure.dto.nsg.AssociatedAsset;
 import com.inventa.azure.dto.nsg.FirewallRule;
 import com.inventa.azure.dto.nsg.NetworkSecurityGroupDto;
 import com.inventa.azure.enums.DeviceTypeEnum;
 import com.inventa.azure.service.NetworkSecurityGroupService;
+import com.microsoft.azure.AzureEnvironment;
+import com.microsoft.azure.PagedList;
+import com.microsoft.azure.credentials.ApplicationTokenCredentials;
+import com.microsoft.azure.management.Azure;
+import com.microsoft.azure.management.network.NetworkSecurityGroup;
+import com.microsoft.azure.management.network.implementation.NetworkManager;
+import com.microsoft.azure.management.resources.Subscription;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -31,8 +33,14 @@ public class NetworkSecurityGroupServiceImpl implements NetworkSecurityGroupServ
     @Autowired
     AzureClient azureClient;
 
+    @Autowired
+    DeviceServiceImpl deviceService;
+
+    @Autowired
+    NetworkSecurityGroupConverter securityGroupConverter;
+
     @Override
-    public List<Map> getNetworkSecurityGroups(String instanceId, AzureProperties azureProperties) {
+    public List<Map> discoverNetworkSecurityGroups(String instanceId, AzureProperties azureProperties) {
 
         List<Map> networkSecurityGroups = new ArrayList<>();
 
@@ -40,20 +48,23 @@ public class NetworkSecurityGroupServiceImpl implements NetworkSecurityGroupServ
 
             if(azureProperties!=null) {
 
-                AzureResourceManager azureResourceManager = azureClient.getAzureClient(azureProperties.getClientId(),
-                        azureProperties.getClientSecret(), azureProperties.getTenantId(), azureProperties.getSubscriptionId());
+                if (azureProperties.getSubscriptions()) {
 
-                PagedIterable<NetworkSecurityGroup> nsgs = azureResourceManager.networkSecurityGroups().list();
+                    PagedList<Subscription> subscriptions = Azure.authenticate(azureClient.getAzureClient(
+                            azureProperties.getClientId(), azureProperties.getClientSecret(), azureProperties.getTenantId())).subscriptions().list();
 
-                if (nsgs != null && nsgs.iterator().hasNext()) {
-                    nsgs.forEach(x -> {
-                        try {
-//                            networkSecurityGroups.add(objectMapper.convertValue(formulateNetworkSecurityGroup(x, azureResourceManager.getCurrentSubscription(), azureProperties.getAccountTag(), instanceId), Map.class));
-                            networkSecurityGroups.add(objectMapper.convertValue(formulateNetworkSecurityGroup(x, azureResourceManager.getCurrentSubscription(), "Test Tag", instanceId), Map.class));
-                        } catch (Exception e) {
-                            e.printStackTrace();
-                        }
+                    subscriptions.forEach(x -> {
+                        Azure azure = Azure.authenticate(azureClient.getAzureClient(
+                                azureProperties.getClientId(),
+                                azureProperties.getClientSecret(),
+                                azureProperties.getTenantId())).withSubscription(x.subscriptionId());
+
+                        networkSecurityGroups.addAll(fetchNetworkSecurityGroups(azure, "Text, test", instanceId));
                     });
+                } else {
+                    Azure azure = Azure.authenticate(azureClient.getAzureClient(
+                            azureProperties.getClientId(), azureProperties.getClientSecret(), azureProperties.getTenantId())).withSubscription(azureProperties.getSubscriptionId());
+                    networkSecurityGroups.addAll(fetchNetworkSecurityGroups(azure, "Text, test", instanceId));
                 }
             }
 
@@ -61,6 +72,25 @@ public class NetworkSecurityGroupServiceImpl implements NetworkSecurityGroupServ
             e.printStackTrace();
         }
 
+        return networkSecurityGroups;
+    }
+
+    private List<Map> fetchNetworkSecurityGroups(Azure azure, String accountTag, String instanceId) {
+        List<Map> networkSecurityGroups = new ArrayList<>();
+
+        PagedList<NetworkSecurityGroup> nsgs = azure.networkSecurityGroups().list();
+
+        if (nsgs != null && !nsgs.isEmpty()) {
+            nsgs.forEach(x -> {
+                try {
+                    networkSecurityGroups.add(objectMapper.convertValue(formulateNetworkSecurityGroup(x, azure.getCurrentSubscription(), accountTag, instanceId), Map.class));
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
+            });
+        }
+
+        deviceService.add(networkSecurityGroups, securityGroupConverter);
         return networkSecurityGroups;
     }
 
@@ -81,9 +111,9 @@ public class NetworkSecurityGroupServiceImpl implements NetworkSecurityGroupServ
             networkSecurityGroupDto.setLocation(nsg.region() != null ? nsg.region().label() : null);
             networkSecurityGroupDto.setTags(AzureUtils.getTabTags(nsg.tags(), accountTag));
 
-            List<List<SecurityRuleInner>> networkSecurityRules = new ArrayList<>();
-            networkSecurityRules.add(nsg.innerModel().securityRules());
-            networkSecurityRules.add(nsg.innerModel().defaultSecurityRules());
+            List<List<com.microsoft.azure.management.network.implementation.SecurityRuleInner>> networkSecurityRules = new ArrayList<>();
+            networkSecurityRules.add(nsg.inner().securityRules());
+            networkSecurityRules.add(nsg.inner().defaultSecurityRules());
             if (networkSecurityRules != null && !networkSecurityRules.isEmpty()) networkSecurityGroupDto.setFirewallRules(getNSGRules(networkSecurityRules));
 
             networkSecurityGroupDto.setAssociatedAssets(getAssociatedAssets(nsg));
@@ -95,11 +125,11 @@ public class NetworkSecurityGroupServiceImpl implements NetworkSecurityGroupServ
         return networkSecurityGroupDto;
     }
 
-    private List<AssociatedAsset> getAssociatedAssets(NetworkSecurityGroup nsg) {
+    private List<AssociatedAsset> getAssociatedAssets(com.microsoft.azure.management.network.NetworkSecurityGroup nsg) {
 
         List<AssociatedAsset> associatedAssetList = new ArrayList<>();
 
-        for (Subnet subnet : nsg.listAssociatedSubnets()) {
+        for (com.microsoft.azure.management.network.Subnet subnet : nsg.listAssociatedSubnets()) {
 
             AssociatedAsset associatedAsset = new AssociatedAsset();
             associatedAsset.setName(subnet.name());
@@ -119,7 +149,7 @@ public class NetworkSecurityGroupServiceImpl implements NetworkSecurityGroupServ
         return associatedAssetList;
     }
 
-    private List<FirewallRule> getNSGRules(List<List<SecurityRuleInner>> networkSecurityRules) {
+    private List<FirewallRule> getNSGRules(List<List<com.microsoft.azure.management.network.implementation.SecurityRuleInner>> networkSecurityRules) {
 
         List<FirewallRule> firewallRuleList = new ArrayList<>();
 
