@@ -1,5 +1,6 @@
 package com.inventa.azure.valueobject;
 
+import com.inventa.azure.dto.ci.Port;
 import com.inventa.azure.dto.nsg.AssociatedAsset;
 import com.inventa.azure.dto.nsg.FirewallRule;
 import com.inventa.azure.enums.DeviceTypeEnum;
@@ -20,6 +21,7 @@ public class Common {
     private Set<String> ipAddress;
     private List<FirewallRule> firewallRules;
     private List<AssociatedAsset> associations;
+    private List<Port> ports;
     private List<Map> assetTags;
 
     private DeviceTypeEnum type;
@@ -85,6 +87,14 @@ public class Common {
 
     public void setAssociations(List<AssociatedAsset> associations) {
         this.associations = associations;
+    }
+
+    public List<Port> getPorts() {
+        return ports;
+    }
+
+    public void setPorts(List<Port> ports) {
+        this.ports = ports;
     }
 
     public List<Map> getAssetTags() {

@@ -98,7 +98,7 @@ public class ContainerInstanceServiceImpl implements ContainerInstanceService {
 
             containerInstanceDto.setAssetName(ci.name());
             containerInstanceDto.setIdentifier(ci.id());
-            containerInstanceDto.setType(DeviceTypeEnum.CONTAINER);
+            containerInstanceDto.setType(DeviceTypeEnum.CONTAINER_INSTANCE);
             containerInstanceDto.setSubscriptionId(subscription.subscriptionId());
             containerInstanceDto.setSubscriptionName(subscription.displayName());
             containerInstanceDto.setResourceGroupName(ci.resourceGroupName());
