@@ -7,6 +7,6 @@ import java.util.Map;
 
 public interface ContainerInstanceService {
 
-    List<Map> getContainerInstances(String instanceId, AzureProperties azureProperties);
+    List<Map> discoverContainerInstances(String instanceId, AzureProperties azureProperties);
 
 }

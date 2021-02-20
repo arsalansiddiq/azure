@@ -70,7 +70,7 @@ public class AzureController {
         azureProperties.setSubscriptionId("b433aca0-7a45-446f-a16a-598111f218fb");
         azureProperties.setSubscriptions(false);
 
-        return containerInstanceService.getContainerInstances(null, azureProperties);
+        return containerInstanceService.discoverContainerInstances(null, azureProperties);
     }
 
 }

@@ -9,22 +9,22 @@ import java.util.Map;
 
 @JsonIgnoreProperties(ignoreUnknown = true)
 @JsonPropertyOrder(value = {"common","specific"})
-public class AdapterData {
+public class UserAdapterData {
 
 //    private Map query;
     @JsonProperty("Asset Id")
     private String assetId;
     @JsonProperty("Common")
-    private com.inventa.azure.valueobject.adapter.Common common;
+    private com.inventa.azure.valueobject.adapter.UserCommon common;
     @JsonProperty("Specific")
     private LinkedHashMap specific;
     private Map query;
 
-    public com.inventa.azure.valueobject.adapter.Common getCommon() {
+    public com.inventa.azure.valueobject.adapter.UserCommon getCommon() {
         return common;
     }
 
-    public void setCommon(com.inventa.azure.valueobject.adapter.Common common) {
+    public void setCommon(com.inventa.azure.valueobject.adapter.UserCommon common) {
         this.common = common;
     }
 

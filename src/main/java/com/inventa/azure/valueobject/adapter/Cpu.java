@@ -1,15 +1,20 @@
 package com.inventa.azure.valueobject.adapter;
 
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonPropertyOrder;
 
+@JsonIgnoreProperties(ignoreUnknown = true)
 @JsonPropertyOrder(value = {"name","manufacturer","coreCount","threadsCount","type","hyperThreading" })
 public class Cpu {
 
+    @JsonProperty("Manufacturer")
     private String manufacturer;
     @JsonProperty("Name")
     private String name;
+    @JsonProperty("Speed")
     private Long speed;
+    @JsonProperty("Type")
     private String type;
     @JsonProperty("Core Count")
     private Long coreCount;

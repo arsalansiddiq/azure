@@ -5,6 +5,7 @@ import com.inventa.azure.dto.AzureProperties;
 import com.inventa.azure.dto.InstanceConfigurationDto;
 import com.inventa.azure.dto.notification.NotificationDto;
 import com.inventa.azure.proxy.NotificationProxy;
+import com.inventa.azure.service.ContainerInstanceService;
 import com.inventa.azure.service.DiscoveryService;
 import com.inventa.azure.service.NetworkSecurityGroupService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -27,7 +28,7 @@ public class DiscoveryServiceImpl implements DiscoveryService {
     NetworkSecurityGroupService networkSecurityGroupService;
 
     @Autowired
-    NetworkSecurityGroupConverter networkSecurityGroupConverter;
+    ContainerInstanceService containerInstanceService;
 
     @Override
     public void triggerDiscovery(List<InstanceConfigurationDto> instances) {
@@ -39,7 +40,8 @@ public class DiscoveryServiceImpl implements DiscoveryService {
             for (InstanceConfigurationDto instance : instances) {
 
                 if (instance != null && instance.getProperties() != null) {
-                    networkSecurityGroupService.discoverNetworkSecurityGroups(instance.get_id(), instance.getProperties());
+                    if (instance.getProperties().isNetworkSecurityGroups()) { networkSecurityGroupService.discoverNetworkSecurityGroups(instance.get_id(), instance.getProperties()); }
+                    if (instance.getProperties().isNetworkSecurityGroups()) { containerInstanceService.discoverContainerInstances(instance.get_id(), instance.getProperties()); }
                 }
             }
 

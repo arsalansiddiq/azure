@@ -5,17 +5,16 @@ import com.inventa.azure.common.Constants;
 import com.inventa.azure.domain.Device;
 import com.inventa.azure.dto.ci.ContainerInstanceDto;
 import com.inventa.azure.dto.common.CorrelationDto;
-import com.inventa.azure.dto.nsg.NetworkSecurityGroupDto;
 import com.inventa.azure.enums.AdapterEnum;
 import com.inventa.azure.enums.AdapterPropertyEnum;
 import com.inventa.azure.enums.DeviceTypeEnum;
 import com.inventa.azure.enums.ParentCategoryEnum;
 import com.inventa.azure.valueobject.Common;
-import com.inventa.azure.valueobject.adapter.AdapterData;
-import com.inventa.azure.valueobject.adapter.FirewallRule;
+import com.inventa.azure.valueobject.adapter.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.mongodb.core.query.Criteria;
 import org.springframework.stereotype.Component;
+import sun.awt.image.ImageWatched;
 
 import java.util.*;
 
@@ -70,20 +69,37 @@ public class ContainerInstanceConverter implements DeviceConverter{
         common.setIdentifier(ciDto.getIdentifier());
         common.setAssetName(ciDto.getAssetName());
         common.setHostName(ciDto.getAssetName());
+        if (ciDto.getIpAddres()!=null && !ciDto.getIpAddres().isEmpty()) {
+            common.setIpAddress(Collections.singleton(ciDto.getIpAddres()));
+        }
         common.setSource(Arrays.asList(AZURE));
+        common.setType(DeviceTypeEnum.CONTAINER_INSTANCE);
+        common.setParentType(ParentCategoryEnum.CONTAINER);
         common.setAssetTags(ciDto.getTags());
+        common.setPorts(ciDto.getPorts());
+        common.setAdapterProperties(getProperties());
 
         Map<String, Object> summary = new HashMap<>();
         summary.put("Subscription ID", ciDto.getSubscriptionId());
         summary.put("Subscription Name", ciDto.getSubscriptionName());
         summary.put("Resource Group", ciDto.getResourceGroupName());
         summary.put("Host Name", ciDto.getAssetName());
+        summary.put("Status", ciDto.getStatus());
         summary.put("Location", ciDto.getLocation());
-        summary.put("OS type", ciDto.getOsType());
+        summary.put("OS", ciDto.getOsType());
+        summary.put("Restart policy", ciDto.getRestartPolicy());
+        summary.put("CPU core", ciDto.getCpuCore());
+        summary.put("GPU", ciDto.getGpu());
         summary.put("RAM", ciDto.getRam());
+        summary.put("Ip address", ciDto.getIpAddres());
+        summary.put("FQDN", ciDto.getFqdn());
+        summary.put("DNS name label", ciDto.getDnsNameLabel());
+        summary.put("Container count", ciDto.getContianerCount());
+        summary.put("Image", ciDto.getImage());
+        summary.put("Start time", ciDto.getStartTime());
+        summary.put("Previous state", ciDto.getPreviousState());
+        summary.put("Restart count", ciDto.getRestartCount());
         common.setSummary(summary);
-
-        common.setPorts(ciDto.getPorts());
 
         common.setFetchTime(new Date());
 
@@ -142,9 +158,45 @@ public class ContainerInstanceConverter implements DeviceConverter{
         common.setIpAddressSet(Collections.singleton(ciDto.getIpAddres()));
         common.setSource(AdapterEnum.AZURE);
         common.setName(ciDto.getAssetName());
+        common.setHostname(ciDto.getAssetName());
         common.setFetchTime(new Date());
 
-//        common.setOpenPorts(); "Remember to discuss with Inshal about nre std left tabs 😎"
+        /*OS Mapping*/
+        Os os = new Os();
+        os.setType(ciDto.getOsType());
+        common.setOs(os);
+        /*End Mapping*/
+
+        /*CPU Mapping*/
+        Cpu cpu = new Cpu();
+        cpu.setCoreCount((long) ciDto.getCpuCore());
+        common.setCpus(Collections.singletonList(cpu));
+        /*End Mapping*/
+
+        /*RAM Mapping*/
+        Ram ram = new Ram();
+        ram.setTotalRam((long) ciDto.getRam());
+        /*End Mapping*/
+
+        /*IP Address Mapping*/
+        if (ciDto.getIpAddres()!=null && !ciDto.getIpAddres().isEmpty()) {
+            Set<String> ipAddresses = new HashSet<String>(Collections.singleton(ciDto.getIpAddres()));
+            common.setIpAddressSet(ipAddresses);
+        }
+        /*End Mapping*/
+
+        /*Open Ports Mapping*/
+        if (ciDto.getPorts()!=null && !ciDto.getPorts().isEmpty()) {
+            Set<OpenPorts> openPorts = new HashSet<>();
+            ciDto.getPorts().forEach(x -> {
+                OpenPorts openPorts1 = new OpenPorts();
+                openPorts1.setPort(x.getPort());
+                openPorts1.setTransport(x.getProtocol());
+                openPorts.add(openPorts1);
+            });
+            common.setOpenPorts(openPorts);
+        }
+        /*End Mapping*/
 
         Set<AdapterPropertyEnum> adapterPropertyEnums = new HashSet<>();
         adapterPropertyEnums.add(AdapterPropertyEnum.ClOUD_PROVIDER);
@@ -162,21 +214,38 @@ public class ContainerInstanceConverter implements DeviceConverter{
         connectorCommon.put("SUBSCRIPTION ID", ciDto.getSubscriptionId());
         connectorCommon.put("SUBSCRIPTION NAME", ciDto.getSubscriptionName());
         connectorCommon.put("RESOURCE GROUP NAME", ciDto.getResourceGroupName());
-
-        LinkedHashMap details = new LinkedHashMap();
+        specific.put("Connector Common", connectorCommon);
 
         LinkedHashMap essentials = new LinkedHashMap();
         essentials.put("Resource Group", ciDto.getResourceGroupName());
         essentials.put("Location", ciDto.getLocation());
+        essentials.put("Status", ciDto.getStatus());
         essentials.put("Subscription", ciDto.getSubscriptionName());
         essentials.put("Subscription ID", ciDto.getSubscriptionId());
-        essentials.put("Status", ciDto.getSubscriptionId());
-        essentials.put("Tags", ciDto.getTags());
-        details.put("Essentials", essentials);
+        essentials.put("OS type", ciDto.getOsType());
+        if (ciDto.getIpAddres()!=null && !ciDto.getIpAddres().isEmpty()) {
+            essentials.put("IP address ", ciDto.getIpAddres());
+        }
+        essentials.put("FQDN", ciDto.getFqdn());
+        essentials.put("Container count", ciDto.getContianerCount());
+        specific.put("Essentials", essentials);
 
+        if (ciDto.getTags()!=null && !ciDto.getTags().isEmpty()) {
+            specific.put("Tags", ciDto.getTags());
+        }
 
-        specific.put("Connector Common", connectorCommon);
-        specific.put("Details", details);
+        LinkedHashMap container = new LinkedHashMap();
+        container.put("Name", ciDto.getAssetName());
+        container.put("Image", ciDto.getImage());
+        container.put("State", ciDto.getStatus());
+        container.put("Previous state", ciDto.getPreviousState());
+        container.put("Start time", ciDto.getStartTime());
+        container.put("Restart count", ciDto.getRestartCount());
+        container.put("CPU cores", ciDto.getCpuCore());
+        container.put("Memory", ciDto.getRam() + " GiB");
+        container.put("GPU SKU", ciDto.getGpuSKU());
+        container.put("GPU count", ciDto.getGpu());
+        specific.put("Containers", container);
 
         return specific;
     }
@@ -207,4 +276,5 @@ public class ContainerInstanceConverter implements DeviceConverter{
         adapterProperties.add("MANAGER");
         return adapterProperties;
     }
+
 }

@@ -8,6 +8,5 @@ import java.util.Map;
 public interface NetworkSecurityGroupService {
 
     List<Map> discoverNetworkSecurityGroups(String instanceId, AzureProperties azureProperties);
-//    List<VirtualMachineSummaryDto> getSummaries(List<VirtualMachine> virtualMachines);
 
 }

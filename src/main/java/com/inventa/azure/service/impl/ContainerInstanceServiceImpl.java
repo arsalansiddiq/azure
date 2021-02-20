@@ -3,6 +3,7 @@ package com.inventa.azure.service.impl;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.inventa.azure.common.AzureClient;
 import com.inventa.azure.common.AzureUtils;
+import com.inventa.azure.converter.ContainerInstanceConverter;
 import com.inventa.azure.dto.AzureProperties;
 import com.inventa.azure.dto.ci.ContainerInstanceDto;
 import com.inventa.azure.dto.ci.Port;
@@ -32,8 +33,11 @@ public class ContainerInstanceServiceImpl implements ContainerInstanceService {
     @Autowired
     DeviceServiceImpl deviceService;
 
+    @Autowired
+    ContainerInstanceConverter containerInstanceConverter;
+
     @Override
-    public List<Map> getContainerInstances(String instanceId, AzureProperties azureProperties) {
+    public List<Map> discoverContainerInstances(String instanceId, AzureProperties azureProperties) {
 
         List<Map> containerInstances = new ArrayList<>();
 
@@ -84,7 +88,7 @@ public class ContainerInstanceServiceImpl implements ContainerInstanceService {
             });
         }
 
-//        deviceService.add(containerInstances, null);
+        deviceService.add(containerInstances, containerInstanceConverter);
         return containerInstances;
     }
 
@@ -118,6 +122,8 @@ public class ContainerInstanceServiceImpl implements ContainerInstanceService {
                 containerInstanceDto.setCpuCore(ci.inner().containers().get(0).resources().requests().cpu());
                 containerInstanceDto.setGpu(ci.inner().containers().get(0).resources().requests().gpu()
                         != null ? ci.inner().containers().get(0).resources().requests().gpu().count() : 0);
+                containerInstanceDto.setGpuSKU(ci.inner().containers().get(0).resources().requests().gpu()
+                        != null ? ci.inner().containers().get(0).resources().requests().gpu().sku().toString() : null);
                 containerInstanceDto.setRestartCount(ci.inner().containers().get(0).instanceView().restartCount());
                 containerInstanceDto.setPreviousState(ci.inner().containers().get(0).instanceView().previousState()
                         != null ? ci.inner().containers().get(0).instanceView().previousState().state() : null);
@@ -140,7 +146,7 @@ public class ContainerInstanceServiceImpl implements ContainerInstanceService {
         ports.forEach(x -> {
             Port port = new Port();
             port.setProtocol(x.protocol().toString());
-            port.setPort(x.port());
+            port.setPort(String.valueOf(x.port()));
             portList.add(port);
         });
 

@@ -1,9 +1,11 @@
 package com.inventa.azure.valueobject.adapter;
 
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonPropertyOrder;
 
-@JsonPropertyOrder(value = {"source","sourcePort","protocol","destination","destinationPort"})
+@JsonIgnoreProperties(ignoreUnknown = true)
+@JsonPropertyOrder(value = {"source","sourcePort","protocol","destination","destinationPort","direction"})
 public class FirewallRule {
 
     @JsonProperty("Source")
@@ -20,6 +22,9 @@ public class FirewallRule {
 
     @JsonProperty("Protocol")
     private String protocol;
+
+    @JsonProperty("Direction")
+    private String direction;
 
     public String getDestinationPort() {
         return destinationPort;

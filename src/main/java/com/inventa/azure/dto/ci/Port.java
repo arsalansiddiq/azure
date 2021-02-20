@@ -2,8 +2,8 @@ package com.inventa.azure.dto.ci;
 
 public class Port {
 
-    String protocol;
-    int port;
+    private String protocol;
+    private String port;
 
     public String getProtocol() {
         return protocol;
@@ -13,11 +13,11 @@ public class Port {
         this.protocol = protocol;
     }
 
-    public int getPort() {
+    public String getPort() {
         return port;
     }
 
-    public void setPort(int port) {
+    public void setPort(String port) {
         this.port = port;
     }
 }

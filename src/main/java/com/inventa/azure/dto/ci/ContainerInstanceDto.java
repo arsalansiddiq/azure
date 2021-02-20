@@ -16,6 +16,7 @@ public class ContainerInstanceDto extends AzureDeviceCommon {
     String osType;
     double ram;
     double cpuCore;
+    String gpuSKU;
     int gpu;
     String previousState;
     String startTime;
@@ -97,6 +98,14 @@ public class ContainerInstanceDto extends AzureDeviceCommon {
 
     public int getGpu() {
         return gpu;
+    }
+
+    public String getGpuSKU() {
+        return gpuSKU;
+    }
+
+    public void setGpuSKU(String gpuSKU) {
+        this.gpuSKU = gpuSKU;
     }
 
     public void setGpu(int gpu) {
